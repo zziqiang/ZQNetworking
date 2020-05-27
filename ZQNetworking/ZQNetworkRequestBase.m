@@ -230,31 +230,33 @@
         }
     }
     
+    if (self.isHandleClickRequst) [ZQNetworkingTips zq_hiddenHudIndicator];
+    if (self.showStatusTip) [ZQNetworkingTips zq_showHudText:msgStr];
     
     
     //如果与预先配置的成功码相同则返回结果
     if (code == ZQNetworkingManager.sharedInstance.codeSuccess) {
         (!self.successBlock)? :self.successBlock(jsonData,code,msgStr);
         return;
-    }
-
-    //如果是token失效码 需要重新登录 则单独处理逻辑
-    if (code == ZQNetworkingManager.sharedInstance.codetokenError) {//token失效
+    }else{
         NSError *error = [[NSError alloc] init];
         (!self.failureBlock)? :self.failureBlock(error,jsonData);
-        [self fm_showReloginAlert:msgStr]; /// 重新登录
-        return;
-    }
-    
-    //如果是强制退出
-    if (code == ZQNetworkingManager.sharedInstance.codeLogout) {
-        [self zq_loginOut];
         
-        return ;
+        //如果是token失效码 需要重新登录 则单独处理逻辑
+        if (code == ZQNetworkingManager.sharedInstance.codetokenError) {//token失效
+//            NSError *error = [[NSError alloc] init];
+//            (!self.failureBlock)? :self.failureBlock(error,jsonData);
+            //[self fm_showReloginAlert:msgStr]; /// 重新登录
+            [self zq_loginOut];
+            return;
+        }
+        
+        //如果是强制退出
+        if (code == ZQNetworkingManager.sharedInstance.codeLogout) {
+            [self zq_loginOut];
+            return ;
+        }
     }
-    
-    if (self.isHandleClickRequst) [ZQNetworkingTips zq_hiddenHudIndicator];
-    if (self.showStatusTip) [ZQNetworkingTips zq_showHudText:msgStr];
 }
 
 -(void)zq_handleError:(NSError *)error{
@@ -408,36 +410,36 @@
 }
 
 
-#pragma mark - 涉及token过期弹出登录的逻辑
-/**
- 需要去重新登录重新登录的提示框
- */
-- (void)fm_showReloginAlert:(NSString *)tipsStr {
-    if (!ZQNetworkingManager.sharedInstance.loginClassString.length) {
-        return;
-    }
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示" message:tipsStr preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {}]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-        UIViewController *currentVC = [self fm_getCurrentVC];
-        
-        if(currentVC.presentingViewController) {
-            // 视图是被presented出来的
-            [currentVC dismissViewControllerAnimated:NO completion:nil];
-        }else {
-            // 根视图为UINavigationController
-            [currentVC.navigationController popViewControllerAnimated:NO];
-        }
-        UIViewController *vc = [[NSClassFromString(ZQNetworkingManager.sharedInstance.loginClassString) alloc] init];
-        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-        vc.navigationController.navigationBar.hidden = YES;
-        nav.modalPresentationStyle = UIModalPresentationFullScreen;
-        [self fm_getCurrentVC].modalPresentationStyle = UIModalPresentationFullScreen;
-        [[self fm_getCurrentVC] presentViewController:nav animated:YES completion:^{
-        }];
-    }]];
-    [[self fm_getCurrentVC] presentViewController:alert animated:YES completion:nil];
-}
+//#pragma mark - 涉及token过期弹出登录的逻辑
+///**
+// 需要去重新登录重新登录的提示框
+// */
+//- (void)fm_showReloginAlert:(NSString *)tipsStr {
+//    if (!ZQNetworkingManager.sharedInstance.loginClassString.length) {
+//        return;
+//    }
+//    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示" message:tipsStr preferredStyle:UIAlertControllerStyleAlert];
+//    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {}]];
+//    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+//        UIViewController *currentVC = [self fm_getCurrentVC];
+//
+//        if(currentVC.presentingViewController) {
+//            // 视图是被presented出来的
+//            [currentVC dismissViewControllerAnimated:NO completion:nil];
+//        }else {
+//            // 根视图为UINavigationController
+//            [currentVC.navigationController popViewControllerAnimated:NO];
+//        }
+//        UIViewController *vc = [[NSClassFromString(ZQNetworkingManager.sharedInstance.loginClassString) alloc] init];
+//        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+//        vc.navigationController.navigationBar.hidden = YES;
+//        nav.modalPresentationStyle = UIModalPresentationFullScreen;
+//        [self fm_getCurrentVC].modalPresentationStyle = UIModalPresentationFullScreen;
+//        [[self fm_getCurrentVC] presentViewController:nav animated:YES completion:^{
+//        }];
+//    }]];
+//    [[self fm_getCurrentVC] presentViewController:alert animated:YES completion:nil];
+//}
 
 - (void)zq_loginOut {
     if (ZQNetworkingManager.sharedInstance.networkingHandler) {
@@ -445,31 +447,31 @@
     }
 }
 
-#pragma mark - 获取当前屏幕显示的VC
-- (UIViewController *)fm_getCurrentVC {
-    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    UIViewController *currentVC = [self getCurrentVCFrom:rootViewController];
-    return currentVC;
-}
-
-- (UIViewController *)getCurrentVCFrom:(UIViewController *)rootVC {
-    UIViewController *currentVC;
-    if([rootVC presentedViewController]) {
-        // 视图是被presented出来的
-        rootVC = [rootVC presentedViewController];
-    }
-    if([rootVC isKindOfClass:[UITabBarController class]]) {
-        // 根视图为UITabBarController
-        currentVC = [self getCurrentVCFrom:[(UITabBarController *)rootVC selectedViewController]];
-    }else if([rootVC isKindOfClass:[UINavigationController class]]){
-        // 根视图为UINavigationController
-        currentVC = [self getCurrentVCFrom:[(UINavigationController *)rootVC visibleViewController]];
-    }else{
-        // 根视图为非导航类
-        currentVC = rootVC;
-    }
-    return currentVC;
-}
+//#pragma mark - 获取当前屏幕显示的VC
+//- (UIViewController *)fm_getCurrentVC {
+//    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+//    UIViewController *currentVC = [self getCurrentVCFrom:rootViewController];
+//    return currentVC;
+//}
+//
+//- (UIViewController *)getCurrentVCFrom:(UIViewController *)rootVC {
+//    UIViewController *currentVC;
+//    if([rootVC presentedViewController]) {
+//        // 视图是被presented出来的
+//        rootVC = [rootVC presentedViewController];
+//    }
+//    if([rootVC isKindOfClass:[UITabBarController class]]) {
+//        // 根视图为UITabBarController
+//        currentVC = [self getCurrentVCFrom:[(UITabBarController *)rootVC selectedViewController]];
+//    }else if([rootVC isKindOfClass:[UINavigationController class]]){
+//        // 根视图为UINavigationController
+//        currentVC = [self getCurrentVCFrom:[(UINavigationController *)rootVC visibleViewController]];
+//    }else{
+//        // 根视图为非导航类
+//        currentVC = rootVC;
+//    }
+//    return currentVC;
+//}
 
 
 @end
