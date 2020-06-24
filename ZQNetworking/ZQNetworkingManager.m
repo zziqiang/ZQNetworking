@@ -144,24 +144,74 @@ static id _sharedInstance = nil;
 }
 
 #pragma mark - 常用请求方法
-/// post请求 有成功回调 有菊花有提示
--(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock{
+/// post请求 有成功回调
+-(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock{
     [self zq_requestWithRequestType:HttpRequestTypePost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:YES withFormData:nil progress:nil successBlock:successBlock failureBlock:nil];
 }
 
 /// post请求 有成功和失败回调 有菊花有提示
--(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+-(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     [self zq_requestWithRequestType:HttpRequestTypePost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:YES withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
 }
 
-/// post请求 有成功和失败回调 无菊花无提示
--(void)zq_postRequestNoTipsUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
-    [self zq_requestWithRequestType:HttpRequestTypePost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:NO showStatusTip:NO withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
+/// post请求 有成功和失败回调
+-(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+    [self zq_requestWithRequestType:HttpRequestTypePost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:isHanderClickRequst showStatusTip:showStatusTip withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
+}
+
+/// post带json的请求 有成功和失败回调
+-(void)zq_postJsonRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+    [self zq_requestWithRequestType:HttpRequestTypeJsonPost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:YES withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
 }
 
 /// post带json的请求 有成功和失败回调
 -(void)zq_postJsonRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
-    [self zq_requestWithRequestType:HttpRequestTypeJsonPost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:YES withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
+    [self zq_requestWithRequestType:HttpRequestTypeJsonPost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:isHanderClickRequst showStatusTip:showStatusTip withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
+}
+
+-(void)zq_postFormDataRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+    [self zq_requestWithRequestType:HttpRequestTypeFormDataPost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:YES withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
+}
+
+-(void)zq_postFormDataRequestUrl:(NSString *)url params:(NSDictionary *)params  isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+    [self zq_requestWithRequestType:HttpRequestTypeFormDataPost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:isHanderClickRequst showStatusTip:showStatusTip withFormData:nil progress:nil successBlock:successBlock failureBlock:failureBlock];
+}
+
+/// post 表单提交 另外需要上传图片 有成功和失败回调
+-(void)zq_postFormDataRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip arrImagesOrFileNsdata:(id)imagesOrData progress:(RequestProgressBlock)progressBlock successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+
+    NSMutableArray *imageArr = @[].mutableCopy;
+
+    if ([imagesOrData isKindOfClass:NSArray.class] || [imagesOrData isKindOfClass:NSMutableArray.class]) {
+        //如果是传多张图片
+        NSArray *images = [NSArray arrayWithArray:imagesOrData];
+        for (int i = 0; i < images.count; i++) {
+            if (![images[i] isKindOfClass:[UIImage class]]) {return;}/// 不是UIImage对象
+        }
+        for (int i = 0;i<images.count;i++) {
+            ZQUploadParam *param = [[ZQUploadParam alloc]init];
+            param.name = url;
+            param.filename = @"image.jpeg";
+            param.mimeType = @"image/jpg/png/jpeg";
+            param.data = UIImageJPEGRepresentation(images[i], 0.5);
+            [imageArr addObject:param];
+        }
+        return;
+    }
+    else if(imagesOrData){
+        ZQUploadParam *param = [[ZQUploadParam alloc]init];
+        if ([imagesOrData isKindOfClass:[UIImage class]]) {
+            param.image = imagesOrData;
+        }else
+            param.data = imagesOrData;
+        
+        param.filename = @"image.jpeg";
+        param.mimeType = @"image/jpg/png/jpeg";
+        
+        [imageArr addObject:param];
+    }
+    
+    [self zq_requestWithRequestType:HttpRequestTypeFormDataPost withUrl:url withParams:params withHttpHeaderParams:nil isHandleClickRequst:isHanderClickRequst showStatusTip:showStatusTip withFormData:imageArr progress:progressBlock successBlock:successBlock failureBlock:failureBlock];
 }
 
 /// get请求 有成功回调

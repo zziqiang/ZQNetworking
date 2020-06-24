@@ -60,23 +60,53 @@ typedef void (^ZQNetworkingHandler)(ZQNetworkingHandlerType type, id objc);
 /// @param failureBlock 失败回调
 - (void)zq_uploadBase64ImageUrl:(NSString *)urlString image:(UIImage *)image isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip progress:(RequestProgressBlock)progressBlock success:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
 
-/// post请求 有成功回调
--(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock;
+/// post请求 有成功回调 ( 默认 有菊花 及提示)
+-(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock;
 
-/// post请求 有成功和失败回调
+/// post请求 有成功和失败回调   ( 默认 有菊花 及提示)
+-(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
+
+/// post请求 有成功和失败回调   ( 菊花 及提示 可自动配置)
 -(void)zq_postRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
 
-/// post带json的请求 有成功和失败回调
+/// post带json的请求 有成功和失败回调  ( 默认 有菊花 及提示)
+-(void)zq_postJsonRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
+
+/// post带json的请求 有成功和失败回调  ( 菊花 及提示 可自动配置)
 -(void)zq_postJsonRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
+
+/// post 表单提交
+/// @param url 域名
+/// @param params 参数
+/// @param isHanderClickRequst 是否需要菊花
+/// @param showStatusTip 是否需要提示
+/// @param successBlock 成功回调
+/// @param failureBlock 失败回调
+-(void)zq_postFormDataRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
+
+
+/// post 表单提交
+/// @param url 域名
+/// @param params 参数
+/// @param successBlock 成功回调
+/// @param failureBlock 失败回调
+-(void)zq_postFormDataRequestUrl:(NSString *)url params:(NSDictionary *)params successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
+
+
+/// post 表单提交
+/// @param url 域名
+/// @param params 参数
+/// @param imagesOrData 图片或Data数组
+/// @param progressBlock 进度回调
+/// @param successBlock 成功回调
+/// @param failureBlock 失败回调
+-(void)zq_postFormDataRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip arrImagesOrFileNsdata:(id)imagesOrData progress:(RequestProgressBlock)progressBlock successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
 
 /// get请求 有成功回调
 -(void)zq_getRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock;
 
 /// get请求 有成功和失败回调
 -(void)zq_getRequestUrl:(NSString *)url params:(NSDictionary *)params isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip successBlock:(RequestSuccessBlock)successBlock  failureBlock:(RequestFailureBlock)failureBlock;
-
-
-
 
 
 @end

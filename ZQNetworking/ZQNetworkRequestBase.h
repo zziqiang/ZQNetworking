@@ -35,6 +35,10 @@ typedef NS_ENUM(NSUInteger,HttpRequestType) {
      */
     HttpRequestTypeJsonPost,
     /**
+     *  post请求(FormData)
+     */
+    HttpRequestTypeFormDataPost,
+    /**
      *  download请求
      */
     HttpRequestTypeDownload
@@ -47,8 +51,6 @@ typedef NS_ENUM(NSUInteger,HttpRequestType) {
 @property (nonatomic, copy) RequestFailureBlock   failureBlock;
 @property (nonatomic, assign) BOOL isHandleClickRequst;
 @property (nonatomic, assign) BOOL showStatusTip;
-
-
 
 /// 基类请求工具
 /// @param type 请求类型 HttpRequestType

@@ -43,6 +43,11 @@
             [self zq_postJsonBaseRequest:url withJsonParams:params withHttpHeaderParams:paramsHeaderDic];
         }
             break;
+        case HttpRequestTypeFormDataPost:
+        {
+            [self zq_postFormDataBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic withFormData:uploadParams];
+        }
+            break;
         case HttpRequestTypeDownload:
         {
             
@@ -180,6 +185,69 @@
             NSDictionary * dicJson = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
             [self zq_handleResponseObject:dicJson];
         }
+    }];
+}
+
+- (void)zq_postFormDataBaseRequest:(NSString *)url withParams:(id)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic withFormData:(NSArray<ZQUploadParam *> *)uploadParams{
+    /*! 检查地址是否完整及中文转码 */
+    NSString *urlString = [self fillRequestAddress:url];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.securityPolicy.validatesDomainName = NO;
+    manager.requestSerializer.timeoutInterval = 30.0f;
+    
+    [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
+    
+    if (params == nil) {
+        params = @{};
+    }
+    
+    //打印日志
+    [self zq_logRequestInfo:manager isGetRequest:NO urlStr:url params:params];
+    
+    //是否需要加菊花
+    if (self.isHandleClickRequst) [ZQNetworkingTips zq_showHudLoadingIndicator];
+    
+    [manager POST:urlString parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+        if ([params isKindOfClass:[NSDictionary class]] || [params isKindOfClass:[NSMutableDictionary class]]) {
+            NSDictionary *paramDic = (NSDictionary *)params;
+            for (NSString *key in paramDic.allKeys) {
+                [formData appendPartWithFormData:[paramDic[key] dataUsingEncoding:NSUTF8StringEncoding] name:key];
+            }
+        }
+        
+        if (uploadParams.count>0)
+        {
+            __block BOOL illegal = NO;//判断是否有其他格式
+            [uploadParams enumerateObjectsUsingBlock:^(ZQUploadParam * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                if (!([obj.image isKindOfClass:[UIImage class]] || [obj.data isKindOfClass:[NSData class]])) {//必须为NSData 或者 UIImage对象
+                    illegal = YES;
+                    *stop = YES;
+                }
+            }];
+            
+            //添加上传文件
+            for (ZQUploadParam *uploadParam in uploadParams) {
+                if (uploadParam.data != nil) {
+                    [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
+                }
+                else{
+                    NSData *imageData;
+                    imageData = UIImageJPEGRepresentation(uploadParam.image, 0.5);
+                    [formData appendPartWithFileData:imageData name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
+                }
+            }
+            
+            for (ZQUploadParam *uploadParam in uploadParams) {
+                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
+            }
+        }
+    } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        //成功回调
+        [self zq_handleResponseObject:responseObject];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        //失败方法
+        [self zq_handleError:error];
     }];
 }
 

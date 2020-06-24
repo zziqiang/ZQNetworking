@@ -2,7 +2,7 @@ Pod::Spec.new do |spec|
 
   spec.name         = "ZQNetworkingManager" # 项目名称
 
-  spec.version      = "1.0.0" # 版本号 与 你仓库的 标签号 一致
+  spec.version      = "1.0.1" # 版本号 与 你仓库的 标签号 一致
 
   spec.summary      = "A set of useful Base Object for Foundation, UIKit and more.This is my personal packaged network request tool" # 项目简介
 
