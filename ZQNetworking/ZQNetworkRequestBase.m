@@ -286,7 +286,13 @@
     
     id jsonData = responseObject[@"data"];
     
-    NSInteger code = [responseObject[@"code"] integerValue];
+    NSInteger code = 0;
+    if (ZQNetworkingManager.sharedInstance.codeKey.length) {
+        code = [responseObject[ZQNetworkingManager.sharedInstance.codeKey] integerValue];
+    }else{
+        code = [responseObject[@"code"] integerValue];
+    }
+    
     NSString *msgStr = @"";
     
     //获取提示消息
