@@ -195,7 +195,8 @@
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     manager.securityPolicy.validatesDomainName = NO;
     manager.requestSerializer.timeoutInterval = 30.0f;
-    
+    manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain",@"application/x-www-form-urlencoded", nil];
+
     [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
     
     if (params == nil) {
@@ -208,7 +209,7 @@
     //是否需要加菊花
     if (self.isHandleClickRequst) [ZQNetworkingTips zq_showHudLoadingIndicator];
     
-    [manager POST:urlString parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+    [manager POST:urlString parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         if ([params isKindOfClass:[NSDictionary class]] || [params isKindOfClass:[NSMutableDictionary class]]) {
             NSDictionary *paramDic = (NSDictionary *)params;
             for (NSString *key in paramDic.allKeys) {
