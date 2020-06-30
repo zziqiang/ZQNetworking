@@ -48,7 +48,7 @@ typedef void (^ZQNetworkingHandler)(ZQNetworkingHandlerType type, id objc);
 /// @param imagesOrData UIImage / NSData格式 或 NSArray格式 nil
 /// @param progressBlock 进度
 /// @param successBlock 成功回调
-- (void)zq_uploadImagesUrl:(NSString *)urlString params:(id)params arrImagesOrFileNsdata:(id)imagesOrData progress:(RequestProgressBlock)progressBlock success:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
+- (void)zq_uploadImagesUrl:(NSString *)urlString params:(id)params arrImagesOrFileNsdata:(id)imagesOrData fileName:(NSString *)fileName progress:(RequestProgressBlock)progressBlock success:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock;
 
 /// base64 方式上传单张图片
 /// @param urlString 请求链接

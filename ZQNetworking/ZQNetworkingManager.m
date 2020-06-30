@@ -94,7 +94,7 @@ static id _sharedInstance = nil;
 }
 
 #pragma mark - 上传图片 （文件方法暂未写 类同）
-- (void)zq_uploadImagesUrl:(NSString *)urlString params:(id)params arrImagesOrFileNsdata:(id)imagesOrData progress:(RequestProgressBlock)progressBlock success:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+- (void)zq_uploadImagesUrl:(NSString *)urlString params:(id)params arrImagesOrFileNsdata:(id)imagesOrData fileName:(NSString *)fileName progress:(RequestProgressBlock)progressBlock success:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     NSMutableArray *imageArr = @[].mutableCopy;
 
     if ([imagesOrData isKindOfClass:NSArray.class] || [imagesOrData isKindOfClass:NSMutableArray.class]) {
@@ -105,7 +105,7 @@ static id _sharedInstance = nil;
         }
         for (int i = 0;i<images.count;i++) {
             ZQUploadParam *param = [[ZQUploadParam alloc]init];
-            param.name = urlString;
+            param.name = fileName;
             param.filename = @"image.jpeg";
             param.mimeType = @"image/jpg/png/jpeg";
             param.data = UIImageJPEGRepresentation(images[i], 0.5);
@@ -119,14 +119,14 @@ static id _sharedInstance = nil;
             param.image = imagesOrData;
         }else
             param.data = imagesOrData;
-        
+        param.name = fileName;
         param.filename = @"image.jpeg";
         param.mimeType = @"image/jpg/png/jpeg";
         
         [imageArr addObject:param];
     }
     
-    [self zq_requestWithRequestType:HttpRequestTypePost withUrl:urlString withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:YES withFormData:imageArr progress:progressBlock successBlock:successBlock failureBlock:failureBlock];
+    [self zq_requestWithRequestType:HttpRequestTypePost withUrl:urlString withParams:params withHttpHeaderParams:nil isHandleClickRequst:YES showStatusTip:NO withFormData:imageArr progress:progressBlock successBlock:successBlock failureBlock:failureBlock];
 }
 
 - (void)zq_uploadBase64ImageUrl:(NSString *)urlString image:(UIImage *)image isHanderClickRequst:(BOOL)isHanderClickRequst showStatusTip:(BOOL)showStatusTip progress:(RequestProgressBlock)progressBlock success:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{

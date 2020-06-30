@@ -134,9 +134,9 @@
                 }
             }
             
-            for (ZQUploadParam *uploadParam in uploadParams) {
-                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
-            }
+//            for (ZQUploadParam *uploadParam in uploadParams) {
+//                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
+//            }
         }
     } progress:^(NSProgress * _Nonnull uploadProgress) {
         CGFloat progress = 1.0 * uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
@@ -239,9 +239,9 @@
                 }
             }
             
-            for (ZQUploadParam *uploadParam in uploadParams) {
-                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
-            }
+//            for (ZQUploadParam *uploadParam in uploadParams) {
+//                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
+//            }
         }
     } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功回调
