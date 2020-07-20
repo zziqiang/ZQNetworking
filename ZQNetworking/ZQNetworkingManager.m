@@ -111,7 +111,6 @@ static id _sharedInstance = nil;
             param.data = UIImageJPEGRepresentation(images[i], 0.5);
             [imageArr addObject:param];
         }
-        return;
     }
     else if(imagesOrData){
         ZQUploadParam *param = [[ZQUploadParam alloc]init];

@@ -9,9 +9,29 @@
 #import "ZQNetworkRequestBase.h"
 #import "ZQNetworking.h"
 
+static float const  timeoutInterval = 20.f;
+
+@interface ZQNetworkRequestBase ()
+
+//@property(nonatomic, strong) dispatch_semaphore_t sema;
+
+@end
+
+
 @implementation ZQNetworkRequestBase
+/*
+-(instancetype)init{
+    if (self = [super init]) {
+        _sema = dispatch_semaphore_create(3);
+    }
+    return self;
+}
+ */
 
 -(void)zq_requestWithRequestType:(HttpRequestType)type withUrl:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic isHandleClickRequst:(BOOL)isHandleClickRequst showStatusTip:(BOOL)showStatusTip  withFormData:(NSArray<ZQUploadParam *> *)uploadParams progress:(RequestProgressBlock)progressBlock successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock {
+    /*
+     dispatch_semaphore_wait(_sema, DISPATCH_TIME_FOREVER);
+     
     if (successBlock) {
         self.successBlock = successBlock;
     }
@@ -23,6 +43,7 @@
     if (failureBlock) {
         self.failureBlock = failureBlock;
     }
+    */
     
     self.isHandleClickRequst = isHandleClickRequst;
     self.showStatusTip = showStatusTip;
@@ -30,22 +51,22 @@
     switch (type) {
         case HttpRequestTypeGet:
         {
-            [self zq_getBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic];
+            [self zq_getBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic progress:progressBlock  successBlock:successBlock failureBlock:failureBlock];
         }
             break;
         case HttpRequestTypePost:
         {
-            [self zq_postBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic withFormData:uploadParams];
+            [self zq_postBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic withFormData:uploadParams progress:progressBlock successBlock:successBlock failureBlock:failureBlock];
         }
             break;
         case HttpRequestTypeJsonPost:
         {
-            [self zq_postJsonBaseRequest:url withJsonParams:params withHttpHeaderParams:paramsHeaderDic];
+            [self zq_postJsonBaseRequest:url withJsonParams:params withHttpHeaderParams:paramsHeaderDic successBlock:successBlock failureBlock:failureBlock];
         }
             break;
         case HttpRequestTypeFormDataPost:
         {
-            [self zq_postFormDataBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic withFormData:uploadParams];
+            [self zq_postFormDataBaseRequest:url withParams:params withHttpHeaderParams:paramsHeaderDic withFormData:uploadParams successBlock:successBlock failureBlock:failureBlock];
         }
             break;
         case HttpRequestTypeDownload:
@@ -61,10 +82,10 @@
 /**
  私有方法
  */
-- (void)zq_getBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic{
+- (void)zq_getBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic progress:(RequestProgressBlock)progressBlock successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
-    manager.requestSerializer.timeoutInterval = 25.0f;
+    manager.requestSerializer.timeoutInterval = timeoutInterval;
     
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
@@ -80,24 +101,24 @@
     
     [manager GET:urlString parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
         CGFloat progress = 1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
-        (!self.progressBlock)? :self.progressBlock(downloadProgress,progress);
+        (!progressBlock)? :progressBlock(downloadProgress,progress);
         
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功方法
-        [self zq_handleResponseObject:responseObject];
+        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
-        [self zq_handleError:error];
+        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
 
-- (void)zq_postBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic withFormData:(NSArray<ZQUploadParam *> *)uploadParams{
+- (void)zq_postBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic withFormData:(NSArray<ZQUploadParam *> *)uploadParams progress:(RequestProgressBlock)progressBlock  successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     manager.securityPolicy.validatesDomainName = NO;
-    manager.requestSerializer.timeoutInterval = 30.0f;
+    manager.requestSerializer.timeoutInterval = timeoutInterval;
     
     [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
     
@@ -140,24 +161,24 @@
         }
     } progress:^(NSProgress * _Nonnull uploadProgress) {
         CGFloat progress = 1.0 * uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
-        (!self.progressBlock)? :self.progressBlock(uploadProgress,progress);
+        (!progressBlock)? :progressBlock(uploadProgress,progress);
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功回调
-        [self zq_handleResponseObject:responseObject];
+        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
-        [self zq_handleError:error];
+        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
 
-- (void)zq_postJsonBaseRequest:(NSString *)url withJsonParams:(id)jsonParams withHttpHeaderParams:(NSDictionary *)paramsHeaderDic{
+- (void)zq_postJsonBaseRequest:(NSString *)url withJsonParams:(id)jsonParams withHttpHeaderParams:(NSDictionary *)paramsHeaderDic successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock {
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
     
     AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
     
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] requestWithMethod:@"POST" URLString:urlString parameters:nil error:nil];
-    request.timeoutInterval= 25;
+    request.timeoutInterval= timeoutInterval;
     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
 
     AFHTTPResponseSerializer *responseSerializer = [AFHTTPResponseSerializer serializer];
@@ -179,22 +200,23 @@
     } downloadProgress:^(NSProgress * _Nonnull downloadProgress) {
         
     } completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
+        
         if (error) {
-            [self zq_handleError:error];
+            [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
         } else {
             NSDictionary * dicJson = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
-            [self zq_handleResponseObject:dicJson];
+            [self zq_handleResponseObject:dicJson successBlock:successBlock failureBlock:failureBlock];
         }
     }];
 }
 
-- (void)zq_postFormDataBaseRequest:(NSString *)url withParams:(id)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic withFormData:(NSArray<ZQUploadParam *> *)uploadParams{
+- (void)zq_postFormDataBaseRequest:(NSString *)url withParams:(id)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic withFormData:(NSArray<ZQUploadParam *> *)uploadParams successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock {
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     manager.securityPolicy.validatesDomainName = NO;
-    manager.requestSerializer.timeoutInterval = 30.0f;
+    manager.requestSerializer.timeoutInterval = timeoutInterval;
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain",@"application/x-www-form-urlencoded", nil];
 
     [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
@@ -245,14 +267,14 @@
         }
     } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功回调
-        [self zq_handleResponseObject:responseObject];
+        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
-        [self zq_handleError:error];
+        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
 
-- (void)zq_downloadBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic{
+- (void)zq_downloadBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic progress:(RequestProgressBlock)progressBlock{
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
     
@@ -261,12 +283,12 @@
     
     [manager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
         CGFloat progress = 1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
-        (!self.progressBlock)? :self.progressBlock(downloadProgress,progress);
+        (!progressBlock)? :progressBlock(downloadProgress,progress);
     } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
         return targetPath;
     } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
         if (error) {
-            [self zq_handleError:error];
+            //[self zq_handleError:error];
         } else {
             [self zq_saveFileInDirectory:response withFilePath:filePath];
         }
@@ -275,7 +297,7 @@
 
 #pragma mark - 结果处理
 
-- (void)zq_handleResponseObject:(id)responseObject{
+- (void)zq_handleResponseObject:(id)responseObject successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     
     if (ZQNetworkingManager.sharedInstance.mingoKill) {
         return;
@@ -304,18 +326,16 @@
             msgStr = responseObject[@"message"];
         }
     }
-    
     if (self.isHandleClickRequst) [ZQNetworkingTips zq_hiddenHudIndicator];
     if (self.showStatusTip) [ZQNetworkingTips zq_showHudText:msgStr];
-    
-    
+        
     //如果与预先配置的成功码相同则返回结果
     if (code == ZQNetworkingManager.sharedInstance.codeSuccess) {
-        (!self.successBlock)? :self.successBlock(jsonData,code,msgStr);
+        (!successBlock)? :successBlock(jsonData,code,msgStr);
         return;
     }else{
-        NSError *error = [[NSError alloc] init];
-        (!self.failureBlock)? :self.failureBlock(error,jsonData);
+        NSError *error = [[NSError alloc] initWithDomain:NSURLErrorDomain code:-1 userInfo:@{NSLocalizedDescriptionKey:@"服务器遇到异常~"}];
+        (!failureBlock)? :failureBlock(error,jsonData);
         
         //如果是token失效码 需要重新登录 则单独处理逻辑
         if (code == ZQNetworkingManager.sharedInstance.codetokenError) {//token失效
@@ -334,7 +354,7 @@
     }
 }
 
--(void)zq_handleError:(NSError *)error{
+-(void)zq_handleError:(NSError *)error successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     //隐藏菊花
     if (self.isHandleClickRequst) {
         [ZQNetworkingTips zq_hiddenHudIndicator];
@@ -346,8 +366,9 @@
     //打印失败日志
     [self zq_logRequestFailure:error];
     
+    //dispatch_semaphore_signal(self.sema);
     //请求失败回调
-    (!self.failureBlock)? :self.failureBlock(error,nil);
+    (!failureBlock)? :failureBlock(error,nil);
 }
 
 

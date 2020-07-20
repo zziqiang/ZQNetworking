@@ -46,9 +46,10 @@ typedef NS_ENUM(NSUInteger,HttpRequestType) {
 
 @interface ZQNetworkRequestBase : NSObject
 
-@property (nonatomic, copy) RequestSuccessBlock   successBlock;
-@property (nonatomic, copy) RequestProgressBlock  progressBlock;
-@property (nonatomic, copy) RequestFailureBlock   failureBlock;
+//@property (nonatomic, copy) RequestSuccessBlock   successBlock;
+//@property (nonatomic, copy) RequestProgressBlock  progressBlock;
+//@property (nonatomic, copy) RequestFailureBlock   failureBlock;
+
 @property (nonatomic, assign) BOOL isHandleClickRequst;
 @property (nonatomic, assign) BOOL showStatusTip;
 
