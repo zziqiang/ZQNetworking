@@ -8,8 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ZQEasyShowConfig.h"
-#import <SVProgressHUD.h>
-#import <MBProgressHUD.h>
+
 
 @interface ZQSVHud : NSObject
 

@@ -7,6 +7,8 @@
 //
 
 #import "ZQSVHud.h"
+#import "SVProgressHUD.h"
+#import "MBProgressHUD.h"
 
 #define kDefaultRect CGRectMake(0, 0, kScreenW, kScreenH)
 #define kGloomyBlackColor  [UIColor colorWithRed:0 green:0 blue:0 alpha:0.3]
