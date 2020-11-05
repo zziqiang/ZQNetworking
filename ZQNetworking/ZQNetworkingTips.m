@@ -12,22 +12,15 @@
 @implementation ZQNetworkingTips
 
 +(void)zq_showHudText:(NSString *)msg{
-    [ZQEasyShowOptions sharedEasyShowOptions].textStatusType = ShowTextStatusTypeMidden;
-
-    [ZQEasyShowTextView showText:msg];
+    [ZQSVHud showBriefAlert:msg];
 }
 
 +(void)zq_showHudLoadingIndicator{
-    [ZQEasyShowOptions sharedEasyShowOptions].textStatusType = ShowTextStatusTypeMidden;
-    [ZQEasyShowOptions sharedEasyShowOptions].loadingSuperViewReceiveEvent = NO;
-    [ZQEasyShowOptions sharedEasyShowOptions].loadingShowOnWindow = YES;
-    [ZQEasyShowOptions sharedEasyShowOptions].loadingAnimationType = LoadingAnimationTypeBounce;
-    [ZQEasyShowOptions sharedEasyShowOptions].loadingShowType = LoadingShowTypeIndicator;
-    [ZQEasyShowLoadingView showLoadingText:@""];
+    [ZQSVHud showLoading];
 }
 
 +(void)zq_hiddenHudIndicator {
-    [ZQEasyShowLoadingView hiddenLoading];
+    [ZQSVHud hideAlert];
 }
 
 @end

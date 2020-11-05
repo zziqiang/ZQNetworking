@@ -9,10 +9,7 @@
 #ifndef ZQEasyShowViewHeader_h
 #define ZQEasyShowViewHeader_h
 
-#import "ZQEasyConfigHeader.h"
-
-#import "ZQEasyShowAlertView.h"
-#import "ZQEasyShowLoadingView.h"
-#import "ZQEasyShowTextView.h"
+#import "ZQEasyShowConfig.h"
+#import "ZQSVHud.h"
 
 #endif /* ZQEasyShowViewHeader_h */

@@ -9,7 +9,7 @@
 #import "ZQNetworkRequestBase.h"
 #import "ZQNetworking.h"
 
-static float const  timeoutInterval = 20.f;
+static float const  timeoutInterval = 10.f;
 
 @interface ZQNetworkRequestBase ()
 
@@ -85,12 +85,13 @@ static float const  timeoutInterval = 20.f;
 - (void)zq_getBaseRequest:(NSString *)url withParams:(NSDictionary *)params withHttpHeaderParams:(NSDictionary *)paramsHeaderDic progress:(RequestProgressBlock)progressBlock successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    //__weak typeof(manager) weakManager = manager;AFN4.0
+    
     manager.requestSerializer.timeoutInterval = timeoutInterval;
     
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
 
-    [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
     if (params == nil) {
         params = @{};
     }
@@ -99,15 +100,17 @@ static float const  timeoutInterval = 20.f;
     
     if (self.isHandleClickRequst) [ZQNetworkingTips zq_showHudLoadingIndicator];
     
-    [manager GET:urlString parameters:params progress:^(NSProgress * _Nonnull downloadProgress) {
+    [manager GET:urlString parameters:params headers:[self zq_forHTTPHeaderField:paramsHeaderDic] progress:^(NSProgress * _Nonnull downloadProgress) {
         CGFloat progress = 1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
         (!progressBlock)? :progressBlock(downloadProgress,progress);
-        
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功方法
+        //版本更新废弃
+        //[weakManager invalidateSessionCancelingTasks:YES];
         [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
+        //[weakManager invalidateSessionCancelingTasks:YES];
         [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
@@ -117,11 +120,10 @@ static float const  timeoutInterval = 20.f;
     NSString *urlString = [self fillRequestAddress:url];
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    
     manager.securityPolicy.validatesDomainName = NO;
     manager.requestSerializer.timeoutInterval = timeoutInterval;
-    
-    [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
-    
+        
     if (params == nil) {
         params = @{};
     }
@@ -132,7 +134,7 @@ static float const  timeoutInterval = 20.f;
     //是否需要加菊花
     if (self.isHandleClickRequst) [ZQNetworkingTips zq_showHudLoadingIndicator];
     
-    [manager POST:urlString parameters:params constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+    [manager POST:urlString parameters:params headers:[self zq_forHTTPHeaderField:paramsHeaderDic] constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         if (uploadParams.count>0)
         {
             __block BOOL illegal = NO;//判断是否有其他格式
@@ -154,10 +156,10 @@ static float const  timeoutInterval = 20.f;
                     [formData appendPartWithFileData:imageData name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
                 }
             }
-            
-//            for (ZQUploadParam *uploadParam in uploadParams) {
-//                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
-//            }
+            /*
+            for (ZQUploadParam *uploadParam in uploadParams) {
+                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
+            }*/
         }
     } progress:^(NSProgress * _Nonnull uploadProgress) {
         CGFloat progress = 1.0 * uploadProgress.completedUnitCount / uploadProgress.totalUnitCount;
@@ -188,8 +190,7 @@ static float const  timeoutInterval = 20.f;
     // 设置body
     request.HTTPBody =  [self zq_setBodyRawForHttpBody:jsonParams];
     
-    //这里要传request 不能传manager，因为使用了dataTaskWithRequest 请求
-    [self zq_forHTTPHeaderField:paramsHeaderDic manager:nil mutableURLRequest:request];
+    [self zq_setHTTPHeaderField:paramsHeaderDic forMutableURLRequest:request];
     //打印日志
     [self zq_logRequestInfo:manager isGetRequest:NO urlStr:urlString params:jsonParams];
     
@@ -215,11 +216,10 @@ static float const  timeoutInterval = 20.f;
     NSString *urlString = [self fillRequestAddress:url];
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    
     manager.securityPolicy.validatesDomainName = NO;
     manager.requestSerializer.timeoutInterval = timeoutInterval;
     manager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/json", @"text/javascript", @"text/plain",@"application/x-www-form-urlencoded", nil];
-
-    [self zq_forHTTPHeaderField:paramsHeaderDic manager:manager];
     
     if (params == nil) {
         params = @{};
@@ -231,7 +231,7 @@ static float const  timeoutInterval = 20.f;
     //是否需要加菊花
     if (self.isHandleClickRequst) [ZQNetworkingTips zq_showHudLoadingIndicator];
     
-    [manager POST:urlString parameters:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+    [manager POST:urlString parameters:nil headers:[self zq_forHTTPHeaderField:paramsHeaderDic] constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         if ([params isKindOfClass:[NSDictionary class]] || [params isKindOfClass:[NSMutableDictionary class]]) {
             NSDictionary *paramDic = (NSDictionary *)params;
             for (NSString *key in paramDic.allKeys) {
@@ -260,10 +260,6 @@ static float const  timeoutInterval = 20.f;
                     [formData appendPartWithFileData:imageData name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
                 }
             }
-            
-//            for (ZQUploadParam *uploadParam in uploadParams) {
-//                [formData appendPartWithFileData:uploadParam.data name:uploadParam.name fileName:uploadParam.filename mimeType:uploadParam.mimeType];
-//            }
         }
     } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功回调
@@ -278,7 +274,7 @@ static float const  timeoutInterval = 20.f;
     /*! 检查地址是否完整及中文转码 */
     NSString *urlString = [self fillRequestAddress:url];
     
-    AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc]initWithSessionConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+    AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
     [manager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
@@ -384,15 +380,12 @@ static float const  timeoutInterval = 20.f;
     [[NSFileManager defaultManager] moveItemAtURL:filePath toURL:[NSURL fileURLWithPath:Doc] error:nil];
 }
 
-#pragma mark - 请求头相关
+#pragma mark - 请求头相关 废弃方法
 /**
  下面是请求用到的方法 请求头相关
  */
-- (void)zq_forHTTPHeaderField:(NSDictionary*)dicHeader manager:(id )manager {
-    [self zq_forHTTPHeaderField:dicHeader manager:manager mutableURLRequest:nil];
-}
-
-- (void)zq_forHTTPHeaderField:(NSDictionary*)dicHeader manager:(id )manager mutableURLRequest:(NSMutableURLRequest *)mutableURLRequest{
+#pragma mark - 请求头相关 新方法
+-(NSDictionary *)zq_forHTTPHeaderField:(NSDictionary*)dicHeader{
     NSMutableDictionary *dic = [self zq_forHttpHeaderIfnilSetDefault:dicHeader];
     
     //将预留的参数dicDefaultHeader整合到dicHeader中
@@ -402,18 +395,15 @@ static float const  timeoutInterval = 20.f;
         [dic setObject:dicDef[key] forKey:key];
     }
     
+    return dic;
+}
+
+- (void)zq_setHTTPHeaderField:(NSDictionary*)dicHeader forMutableURLRequest:(NSMutableURLRequest *)mutableURLRequest{
+    NSDictionary *dic = [self zq_forHTTPHeaderField:dicHeader];
+    
     if (dic) { //将token 等等 封装入请求头
         for (NSInteger i = 0; i < dic.allKeys.count; i++) {
             NSString *key = dic.allKeys[i];
-            
-            if (manager) {
-                if ([manager isKindOfClass:AFHTTPSessionManager.class]) {
-                    [((AFHTTPSessionManager *)manager).requestSerializer setValue:dic[key] forHTTPHeaderField:key];
-                }else if ([manager isKindOfClass:NSMutableURLRequest.class]){
-                    //不排除有传错的可能 所以加一个判断逻辑
-                    [((NSMutableURLRequest *)manager) setValue:dic[key] forHTTPHeaderField:key];
-                }
-            }
             
             if (mutableURLRequest) {
                 [mutableURLRequest setValue:dic[key] forHTTPHeaderField:key];

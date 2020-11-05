@@ -1,0 +1,14 @@
+platform :ios, '9.0'
+
+target 'ZQNetworkingExample' do
+  # 如果不想使用动态框架，请注释下一行
+  # use_frameworks!
+
+  # Pods for Client
+    pod 'AFNetworking', '~> 4.0.1'
+
+    pod 'MBProgressHUD', '~> 0.9.2'
+    pod 'SVProgressHUD'
+        
+end
+
