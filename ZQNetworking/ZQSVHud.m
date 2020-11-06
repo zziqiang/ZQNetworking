@@ -7,12 +7,9 @@
 //
 
 #import "ZQSVHud.h"
+#import "ZQEasyShowConfig.h"
 #import "SVProgressHUD.h"
 #import "MBProgressHUD.h"
-
-#define kDefaultRect CGRectMake(0, 0, kScreenW, kScreenH)
-#define kGloomyBlackColor  [UIColor colorWithRed:0 green:0 blue:0 alpha:0.3]
-#define kGloomyClearCloler  [UIColor colorWithRed:1 green:1 blue:1 alpha:0]
 
 /* 默认网络提示，可在这统一修改 */
 static NSString *const kLoadingMessage = @"loading...";

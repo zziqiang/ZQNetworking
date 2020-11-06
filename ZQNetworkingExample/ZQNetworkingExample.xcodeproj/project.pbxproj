@@ -43,7 +43,6 @@
 		18104D742553F89E006D21B8 /* ZQNetworkingManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZQNetworkingManager.h; sourceTree = "<group>"; };
 		18104D752553F89E006D21B8 /* ZQNetworkingTips.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZQNetworkingTips.h; sourceTree = "<group>"; };
 		18104D772553F89E006D21B8 /* ZQNetworkRequestBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZQNetworkRequestBase.h; sourceTree = "<group>"; };
-		18104D7B2553F89E006D21B8 /* ZQEasyShowViewHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZQEasyShowViewHeader.h; sourceTree = "<group>"; };
 		18104D7C2553F89E006D21B8 /* ZQUploadParam.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZQUploadParam.m; sourceTree = "<group>"; };
 		18104D7E2553F89E006D21B8 /* ZQNetworkingTips.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZQNetworkingTips.m; sourceTree = "<group>"; };
 		18104D7F2553F89E006D21B8 /* ZQNetworkingManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZQNetworkingManager.m; sourceTree = "<group>"; };
@@ -108,7 +107,6 @@
 			isa = PBXGroup;
 			children = (
 				18104D842553F89E006D21B8 /* ZQNetworking.h */,
-				18104D7B2553F89E006D21B8 /* ZQEasyShowViewHeader.h */,
 				18104D772553F89E006D21B8 /* ZQNetworkRequestBase.h */,
 				18104D6D2553F89E006D21B8 /* ZQNetworkRequestBase.m */,
 				18104D742553F89E006D21B8 /* ZQNetworkingManager.h */,

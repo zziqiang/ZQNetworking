@@ -30,6 +30,7 @@ typedef void (^ZQNetworkingHandler)(ZQNetworkingHandlerType type, id objc);
 @property (nonatomic, copy) NSString *tokenKeyName;
 @property (nonatomic, copy) NSString *messagekey;
 @property (nonatomic, copy) NSString *codeKey;
+@property (nonatomic, assign) float timeHudDelay;
 
 @property (nonatomic, assign) NSInteger codeSuccess;
 @property (nonatomic, assign) NSInteger codetokenError;

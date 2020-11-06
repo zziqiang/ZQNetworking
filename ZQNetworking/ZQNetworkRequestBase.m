@@ -9,7 +9,9 @@
 #import "ZQNetworkRequestBase.h"
 #import "ZQNetworking.h"
 
+
 static float const  timeoutInterval = 10.f;
+static float const  timeHudDelay = 0.3f;
 
 @interface ZQNetworkRequestBase ()
 
@@ -107,11 +109,11 @@ static float const  timeoutInterval = 10.f;
         //成功方法
         //版本更新废弃
         //[weakManager invalidateSessionCancelingTasks:YES];
-        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
+        [self zq_handleProgressHudWithResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
         //[weakManager invalidateSessionCancelingTasks:YES];
-        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
+        [self zq_handleProgressHudWithError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
 
@@ -166,10 +168,10 @@ static float const  timeoutInterval = 10.f;
         (!progressBlock)? :progressBlock(uploadProgress,progress);
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功回调
-        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
+        [self zq_handleProgressHudWithResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
-        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
+        [self zq_handleProgressHudWithError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
 
@@ -203,10 +205,10 @@ static float const  timeoutInterval = 10.f;
     } completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
         
         if (error) {
-            [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
+            [self zq_handleProgressHudWithError:error successBlock:successBlock failureBlock:failureBlock];
         } else {
             NSDictionary * dicJson = [NSJSONSerialization JSONObjectWithData:responseObject options:NSJSONReadingMutableContainers error:nil];
-            [self zq_handleResponseObject:dicJson successBlock:successBlock failureBlock:failureBlock];
+            [self zq_handleProgressHudWithResponseObject:dicJson successBlock:successBlock failureBlock:failureBlock];
         }
     }];
 }
@@ -263,10 +265,10 @@ static float const  timeoutInterval = 10.f;
         }
     } progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         //成功回调
-        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
+        [self zq_handleProgressHudWithResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         //失败方法
-        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
+        [self zq_handleProgressHudWithError:error successBlock:successBlock failureBlock:failureBlock];
     }];
 }
 
@@ -292,6 +294,17 @@ static float const  timeoutInterval = 10.f;
 }
 
 #pragma mark - 结果处理
+- (void)zq_handleProgressHudWithResponseObject:(id)responseObject successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+    //如果有加载动画就隐藏
+    float delay = ZQNetworkingManager.sharedInstance.timeHudDelay ?: 0.2;
+    if (self.isHandleClickRequst){
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)delay*NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+            [ZQNetworkingTips zq_hiddenHudIndicator];
+            [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
+        });
+    }else
+        [self zq_handleResponseObject:responseObject successBlock:successBlock failureBlock:failureBlock];
+}
 
 - (void)zq_handleResponseObject:(id)responseObject successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
     
@@ -302,17 +315,7 @@ static float const  timeoutInterval = 10.f;
     //成功打印日志
     [self zq_logRequestSuccess:responseObject];
     
-    id jsonData = responseObject[@"data"];
-    
-    NSInteger code = 0;
-    if (ZQNetworkingManager.sharedInstance.codeKey.length) {
-        code = [responseObject[ZQNetworkingManager.sharedInstance.codeKey] integerValue];
-    }else{
-        code = [responseObject[@"code"] integerValue];
-    }
-    
     NSString *msgStr = @"";
-    
     //获取提示消息
     if (ZQNetworkingManager.sharedInstance.messagekey.length) {
         msgStr = responseObject[ZQNetworkingManager.sharedInstance.messagekey];
@@ -322,22 +325,26 @@ static float const  timeoutInterval = 10.f;
             msgStr = responseObject[@"message"];
         }
     }
-    if (self.isHandleClickRequst) [ZQNetworkingTips zq_hiddenHudIndicator];
     if (self.showStatusTip) [ZQNetworkingTips zq_showHudText:msgStr];
-        
+    
+    NSInteger code = 0;
+    if (ZQNetworkingManager.sharedInstance.codeKey.length) {
+        code = [responseObject[ZQNetworkingManager.sharedInstance.codeKey] integerValue];
+    }else{
+        code = [responseObject[@"code"] integerValue];
+    }
+    id jsonData = responseObject[@"data"];
+    
     //如果与预先配置的成功码相同则返回结果
     if (code == ZQNetworkingManager.sharedInstance.codeSuccess) {
         (!successBlock)? :successBlock(jsonData,code,msgStr);
         return;
     }else{
-        NSError *error = [[NSError alloc] initWithDomain:NSURLErrorDomain code:-1 userInfo:@{NSLocalizedDescriptionKey:@"服务器遇到异常~"}];
+        NSError *error = [[NSError alloc] initWithDomain:NSURLErrorDomain code:-1 userInfo:@{NSLocalizedDescriptionKey:@"服务器遇到点小问题~"}];
         (!failureBlock)? :failureBlock(error,jsonData);
         
-        //如果是token失效码 需要重新登录 则单独处理逻辑
+        //token失效码
         if (code == ZQNetworkingManager.sharedInstance.codetokenError) {//token失效
-//            NSError *error = [[NSError alloc] init];
-//            (!self.failureBlock)? :self.failureBlock(error,jsonData);
-            //[self fm_showReloginAlert:msgStr]; /// 重新登录
             [self zq_loginOut];
             return;
         }
@@ -350,11 +357,21 @@ static float const  timeoutInterval = 10.f;
     }
 }
 
+
+- (void)zq_handleProgressHudWithError:(NSError *)error successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
+    //如果有加载动画就隐藏
+    float delay = ZQNetworkingManager.sharedInstance.timeHudDelay ?: 0.2;
+    
+    if (self.isHandleClickRequst){
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)delay*NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+            [ZQNetworkingTips zq_hiddenHudIndicator];
+            [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
+        });
+    }else
+        [self zq_handleError:error successBlock:successBlock failureBlock:failureBlock];
+}
+
 -(void)zq_handleError:(NSError *)error successBlock:(RequestSuccessBlock)successBlock failureBlock:(RequestFailureBlock)failureBlock{
-    //隐藏菊花
-    if (self.isHandleClickRequst) {
-        [ZQNetworkingTips zq_hiddenHudIndicator];
-    }
     
     //显示提示文字
     if (self.showStatusTip && error.localizedDescription)
@@ -494,38 +511,6 @@ static float const  timeoutInterval = 10.f;
         return @"";
    
 }
-
-
-//#pragma mark - 涉及token过期弹出登录的逻辑
-///**
-// 需要去重新登录重新登录的提示框
-// */
-//- (void)fm_showReloginAlert:(NSString *)tipsStr {
-//    if (!ZQNetworkingManager.sharedInstance.loginClassString.length) {
-//        return;
-//    }
-//    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示" message:tipsStr preferredStyle:UIAlertControllerStyleAlert];
-//    [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {}]];
-//    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-//        UIViewController *currentVC = [self fm_getCurrentVC];
-//
-//        if(currentVC.presentingViewController) {
-//            // 视图是被presented出来的
-//            [currentVC dismissViewControllerAnimated:NO completion:nil];
-//        }else {
-//            // 根视图为UINavigationController
-//            [currentVC.navigationController popViewControllerAnimated:NO];
-//        }
-//        UIViewController *vc = [[NSClassFromString(ZQNetworkingManager.sharedInstance.loginClassString) alloc] init];
-//        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-//        vc.navigationController.navigationBar.hidden = YES;
-//        nav.modalPresentationStyle = UIModalPresentationFullScreen;
-//        [self fm_getCurrentVC].modalPresentationStyle = UIModalPresentationFullScreen;
-//        [[self fm_getCurrentVC] presentViewController:nav animated:YES completion:^{
-//        }];
-//    }]];
-//    [[self fm_getCurrentVC] presentViewController:alert animated:YES completion:nil];
-//}
 
 - (void)zq_loginOut {
     if (ZQNetworkingManager.sharedInstance.networkingHandler) {

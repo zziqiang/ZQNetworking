@@ -7,7 +7,8 @@
 //
 
 #import "ZQNetworkingTips.h"
-#import "ZQEasyShowViewHeader.h"
+#import "ZQEasyShowConfig.h"
+#import "ZQSVHud.h"
 
 @implementation ZQNetworkingTips
 

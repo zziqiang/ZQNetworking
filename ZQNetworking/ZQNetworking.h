@@ -11,11 +11,13 @@
 #import <ZQNetworking/ZQNetworkingTips.h>
 #import <ZQNetworking/ZQNetworkRequestBase.h>
 #import <ZQNetworking/ZQNetworkingManager.h>
+#import <ZQNetworking/ZQSVHud.h>
 
 #else
 
 #import "ZQNetworkingTips.h"
 #import "ZQNetworkRequestBase.h"
 #import "ZQNetworkingManager.h"
+#import "ZQSVHud.h"
 
 #endif

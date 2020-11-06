@@ -7,8 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "ZQEasyShowConfig.h"
-
 
 @interface ZQSVHud : NSObject
 
