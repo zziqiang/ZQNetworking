@@ -28,11 +28,23 @@ static CGFloat const kShowTime  = 1.5f;
 }
 
 #pragma mark - 简短提示语
-+(void)showBriefAlert:(NSString *)alert{
-    [self showBriefAlert:alert time:kShowTime];
++(void)showBriefAlert:(NSString *)message{
+    [self showBriefAlert:message time:kShowTime withPosition:HudShowPositionBottom];
+}
+
++(void)showBriefCenterAlert:(NSString *)message{
+    [self showBriefAlert:message time:kShowTime withPosition:HudShowPositionCenter];
 }
 
 + (void)showBriefAlert:(NSString *)message time:(NSInteger)showTime{
+    [self showBriefAlert:message time:showTime withPosition:HudShowPositionBottom];
+}
+
++ (void)showBriefAlert:(NSString *)message withPosition:(ZQHudShowPosition)position{
+    [self showBriefAlert:message time:kShowTime withPosition:position];
+}
+
++ (void)showBriefAlert:(NSString *)message time:(NSInteger)showTime withPosition:(ZQHudShowPosition)position{
     dispatch_async(dispatch_get_main_queue(), ^{
         
         MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:[UIApplication sharedApplication].windows.firstObject animated:YES];
@@ -41,12 +53,31 @@ static CGFloat const kShowTime  = 1.5f;
         hud.animationType = MBProgressHUDAnimationZoom;
         hud.mode = MBProgressHUDModeText;
         hud.margin = 10.f;
-        hud.yOffset = kScreen_Height /2.0 - (kTabNormalHeight + kSafeBottomMargin);
+        switch (position) {
+            case HudShowPositionCenter:
+            {
+                hud.yOffset = 0;
+            }
+                break;
+            case HudShowPositionTop:
+            {
+                hud.yOffset = - (kScreen_Height /2.0 - (kNavNormalHeight + kStatus_Height));
+            }
+                break;
+            case HudShowPositionBottom:
+            {
+                hud.yOffset = kScreen_Height /2.0 - (kTabNormalHeight + kSafeBottomMargin);
+            }
+                break;
+            default:
+                break;
+        }
         
         hud.removeFromSuperViewOnHide = YES;
         [hud hide:NO afterDelay:showTime];
     });
 }
+
 
 #pragma mark - 网络加载提示用
 + (void)showLoading{

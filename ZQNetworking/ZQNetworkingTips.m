@@ -13,7 +13,7 @@
 @implementation ZQNetworkingTips
 
 +(void)zq_showHudText:(NSString *)msg{
-    [ZQSVHud showBriefAlert:msg];
+    [ZQSVHud showBriefAlert:msg withPosition:HudShowPositionCenter];
 }
 
 +(void)zq_showHudLoadingIndicator{
